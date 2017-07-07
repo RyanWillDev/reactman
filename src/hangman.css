@@ -1,0 +1,8 @@
+.hangman-img {
+  background-size: contain;
+  background-repeat: no-repeat;
+  flex: 1 0 auto;
+  height: 640px;
+  margin-left: auto;
+  width: 480px;
+}
