@@ -308,3 +308,42 @@ class App extends Component {
 This method relies on Babel and uses the transform-class-properties or stage-2 plugin to work.
 Here we define the method using the arrow function which implicitly binds `this` for us.
 This is the way we will define our callbacks going forward.
+
+## Our Gameboard Layout
+
+So far, we have a button that changes our state to signify we have started a game.
+Now we need to make a component to render once the game has started.
+
+```javascript
+class Gameboard extends React.Component {
+ render() {
+   return (
+     <h1>Game in progress</h1>
+   );
+ }
+}
+```
+
+For now we will just put a placeholder element inside our Gameboard component and wire up the App component to render it
+once we start a new game.
+
+### Conditional rendering
+
+When using React you conditionally render components with with plain ol' JavaScript in your render function.
+Let's update the App's render function to take advantage of this.
+
+```javascript
+render() {
+  return (
+    <div>
+      {
+        this.state.gameInProgress ? <Gameboard /> :
+        <Btn style={startGameBtnStyle} buttonText="Start Game" clickHandler={this.startGame} />
+      }
+    </div>
+  );
+}
+```
+
+Here we added a ternary to check for the value of `this.state.gameInProgress`.
+When this is evaluated it will render the Gameboard if true and the start game button if false.

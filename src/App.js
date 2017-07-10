@@ -1,5 +1,16 @@
 import React, { Component } from 'react';
 
+import { Btn } from './Btn';
+
+const startGameBtnStyle = {
+  backgroundColor: '#09ba52',
+  color: 'white',
+  borderRadius: 5,
+  width: 100,
+  height: 50,
+  fontSize: '1.15em',
+};
+
 class App extends Component {
   constructor() {
     super();
@@ -9,9 +20,13 @@ class App extends Component {
     };
   }
 
+  startGame = () => {
+    this.setState({ gameInProgress: true });
+  }
+
   render() {
     return (
-      <h1>Let's make a hangman game</h1>
+      <Btn style={startGameBtnStyle} buttonText="Start Game" clickHandler={this.startGame} />
     );
   }
 }
