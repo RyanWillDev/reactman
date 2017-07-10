@@ -118,3 +118,28 @@ When you declare your components using a pure function you do not have access to
 These components are typically used when a component only needs to take in props and return JSX that is based on the props.
 
 Now that we know a little about React components we can understand what our App component is doing.
+
+## Let's get started
+
+To begin we are going to set up the state our App component and create a "Start Game" button.
+
+When using React you set your components initial state in the constructor of your class.
+To start the App component state is going to consist of a single boolean to keep track of whether or not
+there is a game in progress.
+
+This is what our components initial state will look like.
+Throughout the lifetime of the application will will manipulate this state with `setState`, which our components will
+inherit from `React.Component`.
+
+```javascript
+class App extends React.Component {
+  constructor() {
+    super();
+    this.state = {
+      gameInProgress: false,
+    };
+  }
+}
+```
+
+Now that we have the Apps internal state let's make a button to start the game.
