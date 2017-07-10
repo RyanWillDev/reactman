@@ -31,8 +31,6 @@ class App extends React.Component {
 
     this.state = {
       gameInProgress: false,
-      phrase: '',
-      numberOfGuesses: 0
     };
   }
 
@@ -143,3 +141,170 @@ class App extends React.Component {
 ```
 
 Now that we have the Apps internal state let's make a button to start the game.
+
+## Our first component
+
+Due to the simplicity of the "Start Game" button we will make a stateless functional component.
+It will look something like this.
+
+```javascript
+export const Btn = ({ style, clickHandler, buttonText }) => (
+  <button style={style} onClick={clickHandler}>{buttonText}</button>
+);
+```
+The component above is defined as a simple function. We use ES6 destructuring to get the style, clickHandler, and buttonText
+values from the props object that is passed to our function. We use those values to fill out our button component.
+This allows our button to be reused in multiple places such as a pause or quit button.
+
+Now that we have defined our button component we need to import it into the App component to use it.
+
+First we need to import the component into app using a named import. Add the following code after the existing imports
+App.js. `import { Btn } from './Btn'`
+
+To render the new component add it to App's render function.
+
+```javascript
+render() {
+  return (
+    <Btn buttonText="Start Game" />
+  );
+}
+```
+
+When writing React components the JSX tags are self closing unless they have nested components.
+
+```javascript
+render() {
+  return (
+    <ParentComponent>
+      <ChildComponent />
+    </ParentComponent>
+  );
+}
+```
+
+Now that we have our `Btn` rendering let's add some functionality. When this button is clicked we want it to start
+a new game. Let's add a method to app to change its internal gameInProgress state.
+
+## Setting State
+
+The powerhouse React method is `this.setState`. This is the method used to change your components internal state.
+Because `setState` is inherited from React.Component it lives on the component instance.
+
+When we want to change a piece of state we pass an object with the updated values to `this.setState` and it
+will take care of updating your components state.
+
+```javascript
+class App extends Component {
+  constructor() {
+    super();
+
+    this.state = {
+      gameInProgress: false,
+    };
+  }
+
+  startGame() {
+    this.setState({ gameInProgress: true });
+
+  }
+
+  render() {
+    return (
+      <Btn buttonText="Start Game" onClick={this.startGame}/>
+    );
+  }
+}
+```
+
+The code above appears looks correct, but we have an issue.
+If you are following along try clicking on the button.
+You should see an error of Cannot read property 'setState' of null error appear.
+
+
+Welcome to the first roadblock of React.
+
+## Maintaining `this` context
+
+In order to use `this.setState` inside our callbacks we need to make sure the `this` context inside our method
+always points to our component.
+
+There are a few ways to handle this all with some tradeoffs. Here we will look at three different approaches.
+
+### Binding `this` in the render method.
+
+Perhaps the oldest and simplest solution to this problem is to bind this in the render method.
+That is change what is above to this.
+
+```javascript
+render() {
+  return (
+    <Btn buttonText="Start Game" onClick={this.startGame.bind(this)}/>
+  );
+}
+```
+
+The bind method on functions returns a new function that has its `this` context permanently bound to the object you
+pass as the first argument to `.bind()`.
+
+This approach works, but because we are binding the function in the render function a new function will be created
+each time the App components render function is called. This probably wouldn't cause an issue here, but if you were
+doing this for every list item in a list you could see performance issues.
+
+### Binding `this` in the constructor
+
+Due to the potential performance issues with the previous solution we can instead bind our function in the constructor.
+
+```javascript
+class App extends Component {
+  constructor() {
+    super();
+
+    this.state = {
+      gameInProgress: false,
+    };
+
+    this.startGame = this.startGame.bind(this);
+  }
+
+  startGame() {
+    this.setState({ gameInProgress: true });
+  }
+
+  render() {
+    return (
+      <Btn buttonText="Start Game" onClick={this.startGame}/>
+    );
+  }
+}
+```
+
+This prevents the performance issues, but adds some boilerplate and another thing to remember to do with each callback.
+
+### Binding `this` with Class Property Arrow functions.
+
+```javascript
+class App extends Component {
+  constructor() {
+    super();
+
+    this.state = {
+      gameInProgress: false,
+    };
+  }
+
+  startGame = () => {
+    this.setState({ gameInProgress: true });
+  }
+
+  render() {
+    return (
+      <Btn buttonText="Start Game" onClick={this.startGame}/>
+    );
+  }
+}
+```
+
+This method relies on Babel and uses the transform-class-properties or stage-2 plugin to work.
+Here we define the method using the arrow function which implicitly binds `this` for us.
+This is the way we will define our callbacks going forward.
