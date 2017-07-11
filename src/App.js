@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 
 import { Btn } from './Btn';
+import Gameboard from './Gameboard';
 
 const startGameBtnStyle = {
   backgroundColor: '#09ba52',
@@ -26,7 +27,12 @@ class App extends Component {
 
   render() {
     return (
-      <Btn style={startGameBtnStyle} buttonText="Start Game" clickHandler={this.startGame} />
+      <div>
+        {
+          this.state.gameInProgress ? <Gameboard />
+          : <Btn style={startGameBtnStyle} buttonText="Start Game" clickHandler={this.startGame} />
+        }
+      </div>
     );
   }
 }

@@ -347,3 +347,291 @@ render() {
 
 Here we added a ternary to check for the value of `this.state.gameInProgress`.
 When this is evaluated it will render the Gameboard if true and the start game button if false.
+
+### Adding State
+
+Now we need some state in the Gameboard component to keep track of the phrase we are trying to guess.
+
+```javascript
+export default class Gameboard extends React.Component {
+  constructor() {
+    super();
+
+    this.state = {
+      phrase: ''
+    };
+  }
+
+  render() {
+    return (
+      <h1>Game in progress</h1>
+    );
+  }
+}
+```
+
+Next, we will need to create a component that will be rendered when we do not have a phrase.
+This component will give the user the ability to set the phrase that will be stored in the Gameboard.
+
+Let's go ahead and create a PhraseModal.jsx file. This component will need to provide an input for the user
+to enter their phrase, a button to toggle the visibility of the phrase, and finally, a button to submit the the phrase.
+
+To start we will outline the component and give it some initial state.
+
+```javascript
+export default class PhraseModal extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      visible: false,
+      phrase: ''
+    };
+
+  }
+
+  render() {
+    return (
+      <div>
+        <h1>Enter a phrase</h1>
+      </div>
+    );
+  }
+}
+```
+
+Let's import the PhraseModal component and change the Gameboard's render method to return it.
+
+```javascript
+export default class Gameboard extends React.Component {
+  constructor() {
+    super();
+
+    this.state = {
+      phrase: ''
+    };
+  }
+
+  render() {
+    return (
+      <PhraseModal />
+    );
+  }
+}
+```
+
+
+The phrase modal currently only renders a `div` and and `h1`. Its internal state consists of the phrase the user will
+enter in the input and a boolean to determine if that phrase should be visible or not.
+So, we need to add an input to the render function.
+
+```javascript
+export default class PhraseModal extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      visible: false,
+      phrase: ''
+    };
+
+  }
+
+  render() {
+    return (
+      <div>
+        <h1>Enter a phrase</h1>
+        <input type="password" />
+      </div>
+    );
+  }
+}
+```
+We set the input type to password to hide the phrase from prying eyes. Now, we need to implement a function to update
+the phrase in our components state. But first, I will need to introduce the idea of [Controlled Components](https://facebook.github.io/react/docs/forms.html)
+
+### Controlled Components
+
+In React the component's state is supposed to be the single source of truth for all state in that component.
+HTML form elements hold their own state IE: What the user has entered in the input.
+This puts HTML form elements at odds with React. Controlled components are the solution to this problem.
+
+In the case of our input, we will set an onChange callback function on the input which will update `this.state.phrase`.
+The input's `value` property will be set to whatever is in `this.state.phrase`.
+This keeps the value in the input and in `this.state.phrase` in sync at all times.
+Let's see how this will look.
+
+
+```javascript
+export default class PhraseModal extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      visible: false,
+      phrase: ''
+    };
+
+  }
+
+  updatePhrase = (event) => {
+    this.setState({ phrase: event.target.value });
+  }
+
+  render() {
+    return (
+      <div>
+        <h1>Enter a phrase</h1>
+        <input onChange={this.updatePhrase} value={this.state.phrase} type="password" />
+      </div>
+    );
+  }
+}
+```
+
+Now that we are in control of our input, let's add the toggle visibility button. This button will need to toggle the type
+of the input from password to text to allow the user to see what they are typing.
+
+First, let's add the function we will use to accomplish this.
+
+```javascript
+export default class PhraseModal extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      visible: false,
+      phrase: ''
+    };
+
+  }
+
+  updatePhrase = (event) => {
+    this.setState({ phrase: event.target.value });
+  }
+
+  togglePhraseVisibility = () => {
+    this.setState({ visible: !this.state.visible });
+  }
+
+  render() {
+    return (
+      <div>
+        <h1>Enter a phrase</h1>
+        <input onChange={this.updatePhrase} value={this.state.phrase} type="password" />
+      </div>
+    );
+  }
+}
+```
+
+The togglePhraseVisibility function is pretty straight forward. We are using `this.state.visible` to keep track of
+whether or not the phrase should be visible. So, we just set it to the opposite of whatever it is when the function is
+called.
+
+If we import the `Btn` component we created earlier, we can easily add the toggle visibility button. Once the visibility
+is being toggled, we can change the type attribute on the input to change from `password` to `text` depending on `this.state.visible`.
+
+
+```javascript
+export default class PhraseModal extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      visible: false,
+      phrase: ''
+    };
+
+  }
+
+  updatePhrase = (event) => {
+    this.setState({ phrase: event.target.value });
+  }
+
+  togglePhraseVisibility = () => {
+    this.setState({ visible: !this.state.visible });
+  }
+
+  render() {
+    return (
+      <div>
+        <h1>Enter a phrase</h1>
+        <input onChange={this.updatePhrase} value={this.state.phrase} type={this.state.visible ? 'text' : 'password' } />
+        <Btn clickHandler={this.togglePhraseVisibility} buttonText={this.state.visible ? 'Hide Phrase' : 'Show Phrase'} />
+      </div>
+    );
+  }
+}
+```
+
+As you can see we are now using `this.state.visible` determine the type of the input and the button is updating that value.
+As an added bonus the text of the toggle button will also change depending on whether the phrase is visible or not.
+
+The last thing we need the PhraseModal to do is tell the Gameboard component what the user has set as their phrase when
+a submit button is clicked. Since React **does not** have two way data binding. We will need to pass a callback function
+from Gameboard to PhraseModal that will tell Gameboard to update the user's phrase.
+
+Back in the Gameboard component let's add the setPhrase Method.
+We will then need to pass the callback to PhraseModal as a prop.
+
+```javascript
+export default class Gameboard extends React.Component {
+  constructor() {
+    super();
+
+    this.state = {
+      phrase: ''
+    };
+  }
+
+  setPhrase = (phrase) => {
+    this.setState({ phrase })
+  }
+
+  render() {
+    return (
+      <PhraseModal setPhrase={this.setPhrase} />
+    );
+  }
+}
+```
+
+Now that PhraseModal has the callback it needs to update Gameboard's phrase, we will need to implement a button to call it.
+We will add another `Btn` and have it call setPhrase when clicked.
+
+```javascript
+export default class PhraseModal extends React.Component {
+  constructor(props) {
+    super();
+
+    this.state = {
+      visible: false,
+      phrase: ''
+    };
+
+  }
+
+  togglePhraseVisibility = () => {
+    this.setState({ visible: !this.state.visible });
+  }
+
+  updatePhrase = (event) => {
+    this.setState({ phrase: event.target.value });
+  }
+
+  render() {
+    return (
+      <div>
+        <h1>Enter a phrase</h1>
+        <input onChange={this.updatePhrase} value={this.state.phrase} type={this.state.visible ? 'text' : 'password' } />
+        <Btn clickHandler={this.togglePhraseVisibility} buttonText={this.state.visible ? 'Hide Phrase' : 'Show Phrase'} />
+        <Btn clickHandler={() => { this.props.setPhrase(this.state.phrase) }} buttonText="Submit Phrase" />
+      </div>
+    );
+  }
+}
+```
+
+The function that is passed to `Btn`'s clickHandler will call the function passed by Gameboard with the phrase the user
+has entered.
