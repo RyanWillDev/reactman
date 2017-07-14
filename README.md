@@ -635,3 +635,85 @@ export default class PhraseModal extends React.Component {
 
 The function that is passed to `Btn`'s clickHandler will call the function passed by Gameboard with the phrase the user
 has entered.
+
+## HangmanGame
+
+Now that we have a way to enter a phrase we are ready to start the HangmanGame component and build the actual game.
+
+Let's start by creating a Hangman.jsx file and importing it into the Gameboard component.
+
+```javascript
+export default class HangmanGame extends React.Component {
+  render() {
+    return (
+      <h1>I am the HangmanGame</h1>
+    );
+  }
+}
+```
+
+For now we are just rendering a placeholder `h1` so we can see our component render.
+
+We want the Hangman component to be rendered once the user has entered a phrase.
+So, lets change Gamboard's render method to conditionally render either the PhraseModal or the HangmanGame component
+depending on whether or not we have a phrase or not.
+We will use another ternary to accomplish this.
+
+```javascript
+render() {
+  return (
+    <div>
+      {
+        this.state.phrase.length ? <HangmanGame />
+        : <PhraseModal setPhrase={this.setPhrase} />
+      }
+    </div>
+  );
+}
+```
+
+Next we will add a way to display the phrase as a series of empty slots. We will need to pass the phrase as a prop from
+Gameboard to HangmanGame.
+
+```javascript
+render() {
+  return (
+    <div>
+      {
+        this.state.phrase.length ? <HangmanGame phrase={this.state.phrase}/>
+        : <PhraseModal setPhrase={this.setPhrase} />
+      }
+    </div>
+  );
+}
+```
+
+Now that we have access to the phrase in Hangman game let's change HangmanGame's render function to return a list of letters.
+
+```javascript
+render() {
+  return (
+    <ul>
+      {
+        this.props.phrase.split('')
+        .map((letter, i) => (
+            <li key={i}>{letter}</li>
+          )
+        )
+      }
+    </ul>
+  );
+}
+```
+
+At first glance it may seem like a lot is going on here, but let's break it down.
+
+First, we are returning an unordered list. Inside that we are taking the string passed in as `this.props.phrase` and
+turning it into an array with `split()`. Next, we iterate over the letters in the the array with `map()`.
+From map we return some JSX that represents a list item with the letter and the index as a key.
+
+It is recommended to pass a key to anything that is created using some sort of iteration.
+This is a property that the internal diffing algorithm, [Reconciliation](https://facebook.github.io/react/docs/reconciliation.html),
+uses to help distinguish which element has changed.
+
+This will form the foundation of the slots for our phrase.

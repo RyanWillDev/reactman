@@ -1,9 +1,24 @@
 import React from 'react';
 
+import PhraseModal from './PhraseModal';
+
+
 export default class Gameboard extends React.Component {
+  constructor() {
+    super();
+
+    this.state = {
+      phrase: '',
+    };
+  }
+
+  setPhrase = (phrase) => {
+    this.setState({ phrase });
+  }
+
   render() {
     return (
-      <h1>Game in progress</h1>
+      <PhraseModal setPhrase={this.setPhrase} />
     );
   }
 }
