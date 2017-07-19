@@ -717,3 +717,138 @@ This is a property that the internal diffing algorithm, [Reconciliation](https:/
 uses to help distinguish which element has changed.
 
 This will form the foundation of the slots for our phrase.
+
+## PhraseSlots
+
+Let's change the HangmanGame to render the phrase in a way that looks more like what we are used to when playing hangman.
+
+This step of the workshop is going to rely on some files that are added on Step 1.
+The phrase-slots.css file will style our PhraseSlots for us, and the phraseUtils.js file has some pre-built utility functions
+to make working with our phrase a little easier.
+
+To begin, we are going to add a constructor method to our HangmanGame component which will set some state using a function
+from phraseUtils.js.
+
+In order to use `this.props` inside the constructor method we will need to pass our props to the super call.
+
+Once we have done that, we can use the PhraseUtils to parse our phrase and set it as HangmanGame's state.
+To get phraseUtils we will need to add `import PhraseUtils from './phraseUtils';` to HangmanGame.
+Let's also go ahead and add an array to keep track of the missed guesses.
+
+```javascript
+export default class HangmanGame extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      incorrectGuesses: [],
+      phraseMap: PhraseUtils.generatePhraseMap(this.props.phrase)
+    };
+  }
+
+  render() {
+   return (
+     <ul>
+       {
+         this.props.phrase.split('')
+         .map((letter, index) => (
+           <li key={index}>{letter}</li>
+         ))
+       }
+     </ul>
+   );
+  }
+}
+```
+
+Next, add a PhraseSlot.jsx file to the src directory. We do not need any state for this component so we will go ahead
+and make a functional component. This component will take in the phraseMap we have generated in HangmanGame
+and return an `li` that will show the letter only if it is guessed.
+
+We will also need the phrase-slots.css to style the `li` PhraseSlot returns.
+We will just need to apply the correct class name to the `li` depending on whether it is a space or a letter.
+
+**Note:** When adding a class to a JSX element you must use className instead of class.
+This is because class is a reserved keyword in JavaScript.
+
+```javascript
+import React from 'react';
+
+import './phrase-slots.css';
+
+export const PhraseSlot = props => {
+  let className = 'phrase-slot';
+
+  if (props.charObj.char === ' ') {
+    className += ' space';
+  } else {
+    className += ' char';
+  }
+
+  return (
+    <li className={className}>{props.charObj.guessed ? props.charObj.char : '' }</li>
+  );
+}
+```
+
+Now that we have our PhraseSlot component we need to use it in HangmanGame.
+We will need to update HangmanGame's render function to map the `this.state.phraseMap` and return a PhraseSlot for each
+item in that array.
+We will also add a little bit of styling to the `ul` to make it display horizontally instead of vertically.
+
+**Remember:** to add the key to the PhraseSlot to help React figure out which PhraseSlot has changed when it re-renders
+the list.
+
+
+```javascript
+render() {
+  <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
+    {
+      this.state.phraseMap.map((obj, i) => (<PhraseSlot key={i} charObj={obj} />))
+    }
+  </ul>
+}
+```
+
+Lastly, we will add a temporary keypress listener to make guesses.
+We will eventually replace this with a list of buttons to click so we can have more control over the types of guesses users can make.
+
+In our HangmanGame component we will add an updateGame method to call on each keypress.
+This method will use another PhraseUtils function to figure out what has changed and return the new state which we will
+set with `this.setState`.
+We will also add a span to view our incorrect guesses until the actual hangman has been created.
+
+Update the HangmanGame component to look like this.
+
+```javascript
+export default class HangmanGame extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      incorrectGuesses: [],
+      phraseMap: PhraseUtils.generatePhraseMap(this.props.phrase)
+    };
+
+    document.onkeypress = (e) => this.updateGame(e.key);
+  }
+
+  updateGame(guess) {
+    this.setState(PhraseUtils.diffPhraseMap(this.state, guess));
+  }
+
+  render() {
+    return (
+      <div>
+         <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
+        {
+          this.state.phraseMap.map((obj, i) => (<PhraseSlot key={i} charObj={obj} />))
+        }
+        </ul>
+
+        <span>{this.state.incorrectGuesses.join(' ')}</span>
+      </div>
+    );
+  }
+}
+```
