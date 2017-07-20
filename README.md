@@ -852,3 +852,79 @@ export default class HangmanGame extends React.Component {
   }
 }
 ```
+
+## Letter buttons
+
+Now we are going to add a list containing a button for each letter of the Alphabet so we can have more control over the user's
+input in our application. To save you from having to write out the Alphabet, I have included a file called alphabet.js
+that contains an array of the Alphabet.
+
+We will need to pass our updateGame function from HangmanGame to AlphaBtns to allow our button clicks to make guesses.
+Since we are now passing it to another component and using `this.setState` we will need to remember to make a slight
+modification to retain the correct `this` context.
+
+We will also need to change what we pass to the diffPhraseMap method.
+We will need to get the innerHTML of whichever button is clicked (the target).
+This will contain the letter the user is trying to guess.
+
+updateGame should be changed to this:
+
+```javascript
+updateGame = (event) => {
+  this.setState(PhraseUtils.diffPhraseMap(this.state, event.target.innerHTML));
+}
+```
+
+Let's create a file called AlphaBtns.jsx and inside we will create our list of buttons.
+We will need to import React, our Btn component, and the alphabet array.
+Once we have the array we will loop through it and return a Btn for each letter.
+
+We will use a technique called event propagation to avoid having to set a callback on each individual button.
+Instead, we will define a click handler on the the list and let it capture the events of it's children.
+This click handler will be responsible for calling updateGame as well as disabling the button that was clicked.
+
+
+Our finished AlphaBtns component:
+
+```
+import React from 'react';
+
+import { Btn } from './Btn';
+
+import alphabet from './alphabet';
+
+
+export const AlphaBtns = props => {
+  return (
+    <ul onClick={event => { props.updateGame(event); event.target.disabled = true; }}>
+      {
+        alphabet.map((letter, i) => ( <Btn key={i} buttonText={letter} /> ))
+      }
+    </ul>
+  );
+};
+```
+
+We are now ready to import our button list into HangmanGame to render it.
+After you have imported AlphaBtns, update HangmanGame's render function to look like this:
+
+```javascript
+render() {
+  return (
+    <div>
+       <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
+      {
+        this.state.phraseMap.map((charObj, i) => (<PhraseSlot key={i} charObj={charObj} />))
+      }
+      </ul>
+
+      <AlphaBtns updateGame={this.updateGame} />
+
+      <span>{this.state.incorrectGuesses.join(' ')}</span>
+    </div>
+
+  );
+}
+```
+
+Finally, we will delete the keyPress handler from HangmanGame's constructor as it is no longer needed.
