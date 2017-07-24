@@ -928,3 +928,96 @@ render() {
 ```
 
 Finally, we will delete the keyPress handler from HangmanGame's constructor as it is no longer needed.
+
+## Adding the Hangman
+
+Now that we have a way for users to make guesses and keep track of the incorrect guesses, we can finally add the hangman
+to our game.
+
+We will start by updating the render method of HangmanGame.
+We will need to wrap what we have currently in an `div` to separate it from the hangman image container and to apply some
+styling.
+
+We will also need to import some styles from the hangman.css file and the images from the imgs/imgs.js file.
+The img.js file contains an array of embedded images we will use to change the hangman drawing as the user misses letters.
+
+We will add another another `div` to display the hangman image.
+We will add the class hangman-img to apply some styling.
+The image itself will be changed based on how many incorrect guesses the user has made.
+
+We will take advantage of ES6 template literals to do that.
+Add a style prop to the `div` with the class of hangman-img.
+Inside the style prop we will add an object literal that looks like this
+`{ backgroundImage: `url(${imgs[this.state.incorrectGuesses.length]})`}`
+
+This will get the image from the imgs array that corresponds to the number of missed numbers.
+
+After all these changes the HangmanGame component should look like this.
+
+```javascript
+import React from 'react';
+import PhraseUtils from './phraseUtils';
+
+import { PhraseSlot } from './PhraseSlot';
+import { AlphaBtns } from './AlphaBtns';
+
+import imgs from './imgs/imgs';
+
+import './hangman.css';
+
+
+export default class HangmanGame extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      incorrectGuesses: [],
+      test: true,
+      phraseMap: PhraseUtils.generatePhraseMap(this.props.phrase)
+    };
+  }
+
+
+  updateGame = (event) => {
+    this.setState(PhraseUtils.diffPhraseMap(this.state, event.target.innerHTML));
+  }
+
+  render() {
+    return (
+      <div style={{ display: 'flex' }}>
+        <div>
+           <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
+            {
+              this.state.phraseMap.map((charObj, i) => (<PhraseSlot key={i} charObj={charObj} />))
+            }
+          </ul>
+
+          <AlphaBtns updateGame={this.updateGame} />
+        </div>
+        <div className="hangman-img" style={{ backgroundImage: `url(${imgs[this.state.incorrectGuesses.length]})`}}>
+        </div>
+      </div>
+    );
+  }
+}
+```
+
+Lastly, we will need to make a change to the AlphaBtns component to have them render on a row by themselves.
+
+```javascript
+import React from 'react';
+
+import { Btn } from './Btn';
+
+import alphabet from './alphabet';
+
+export const AlphaBtns = props => {
+  return (
+    <ul style={{ width: '100%' }} onClick={event => { props.updateGame(event); event.target.disabled = true; }}>
+      {
+        alphabet.map((letter, i) => ( <Btn key={i} buttonText={letter} /> ))
+      }
+    </ul>
+  );
+};
+```

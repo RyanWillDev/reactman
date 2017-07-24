@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { PhraseSlot } from './PhraseSlot';
+import { AlphaBtns } from './AlphaBtns';
 
 import PhraseUtils from './phraseUtils';
 
@@ -12,13 +13,10 @@ export default class HangmanGame extends React.Component {
       incorrectGuesses: [],
       phraseMap: PhraseUtils.generatePhraseMap(this.props.phrase)
     };
-
-
-    document.onkeypress = (e) => this.updateGame(e.key);
   }
 
-  updateGame(guess) {
-    this.setState(PhraseUtils.diffPhraseMap(this.state, guess))
+  updateGame = (event) => {
+    this.setState(PhraseUtils.diffPhraseMap(this.state, event.target.innerHTML))
   }
 
   render() {
@@ -29,7 +27,9 @@ export default class HangmanGame extends React.Component {
             this.state.phraseMap.map((charObj, i) => ( <PhraseSlot key={i} charObj={charObj} />))
           }
         </ul>
-        
+
+        <AlphaBtns updateGame={this.updateGame} />
+
         <span>{this.state.incorrectGuesses.join(' ')}</span>
       </div>
     );
