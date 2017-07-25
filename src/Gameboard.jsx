@@ -17,11 +17,15 @@ export default class Gameboard extends React.Component {
     this.setState({ phrase });
   }
 
+  restartGame = () => {
+    this.setState({ phrase: '' });
+  }
+
   render() {
     return (
       <div>
         {
-          this.state.phrase.length ? <HangmanGame phrase={this.state.phrase} />
+          this.state.phrase.length ? <HangmanGame restartGame={this.restartGame} phrase={this.state.phrase} />
           : <PhraseModal setPhrase={this.setPhrase} />
         }
       </div>
