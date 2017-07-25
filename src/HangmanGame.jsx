@@ -1,9 +1,13 @@
 import React from 'react';
+import PhraseUtils from './phraseUtils';
 
 import { PhraseSlot } from './PhraseSlot';
 import { AlphaBtns } from './AlphaBtns';
 
-import PhraseUtils from './phraseUtils';
+import imgs from './imgs/imgs';
+
+import './hangman.css';
+
 
 export default class HangmanGame extends React.Component {
   constructor(props) {
@@ -16,21 +20,23 @@ export default class HangmanGame extends React.Component {
   }
 
   updateGame = (event) => {
-    this.setState(PhraseUtils.diffPhraseMap(this.state, event.target.innerHTML))
+    this.setState(PhraseUtils.diffPhraseMap(this.state, event.target.innerHTML));
   }
 
   render() {
     return (
-      <div>
-        <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
-          {
-            this.state.phraseMap.map((charObj, i) => ( <PhraseSlot key={i} charObj={charObj} />))
-          }
-        </ul>
+      <div style={{ display: 'flex' }}>
+        <div>
+           <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
+            {
+              this.state.phraseMap.map((charObj, i) => (<PhraseSlot key={i} charObj={charObj} />))
+            }
+          </ul>
 
-        <AlphaBtns updateGame={this.updateGame} />
-
-        <span>{this.state.incorrectGuesses.join(' ')}</span>
+          <AlphaBtns updateGame={this.updateGame} />
+        </div>
+        <div className="hangman-img" style={{ backgroundImage: `url(${imgs[this.state.incorrectGuesses.length]})`}}>
+        </div>
       </div>
     );
   }

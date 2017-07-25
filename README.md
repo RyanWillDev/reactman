@@ -1021,3 +1021,174 @@ export const AlphaBtns = props => {
   );
 };
 ```
+## Game Over
+
+We are now on the last step. Sheww! What a journey.
+The last thing we need to do is have a way for the user to either lose or win the game.
+
+Let's start with the former.
+
+When the user has guessed incorrectly more than 5 times they have lost the game.
+We already have an array in the HangManGame component that is keeping track of the incorrect letters.
+All we need is to add a check in the render method that will render a game over screen when the array's length is greater than 5.
+We can use another ternary to accomplish this.
+
+HangmanGame's render function:
+
+```javascript
+render() {
+  return (
+    <div>
+    {
+      this.state.incorrectGuesses.length < 6 ?
+        <div style={{ display: 'flex' }}>
+          <div>
+
+           <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
+            {
+              this.state.phraseMap.map((charObj, i) => (<PhraseSlot key={i} charObj={charObj} />))
+            }
+          </ul>
+
+          <AlphaBtns updateGame={this.updateGame} />
+          </div>
+          <div className="hangman-img" style={{ backgroundImage: `url(${imgs[this.state.incorrectGuesses.length]})`}}>
+          </div>
+        </div>
+      :
+      <div>
+        <h1>Game Over</h1>
+        <h2>You didn't guess the phrase. :(</h2>
+      </div>
+    }
+    </div>
+  );
+}
+```
+
+We had to add a wrapping `div` to the render method because a render method can only return one parent element.
+
+The ternary is checking if `this.state.incorrectGuesses.length` is less than 6. If so, it will show the HangmanGame,
+otherwise it will render the game over elements.
+
+Next, let's add a way of detecting whether the user has won the game. To do this we will need to add a componentDidUpdate
+method to the HangmanGame component. This will to check if all the letters in the phrase every time our updateGame method is called.
+We will also need to add a boolean to `this.state.phraseGuessed`. This will allow us to stop the game when the phrase has been guessed.
+Add this to HangmanGame:
+
+```javascript
+this.state = {
+  incorrectGuesses: [],
+  phraseMap: PhraseUtils.generatePhraseMap(this.props.phrase),
+  phraseGuessed: false
+};
+```
+
+```javascript
+componentDidUpdate(prevProps, prevState) {
+  if (!prevState.phraseGuessed
+      && !this.state.phraseMap.filter(obj => obj.guessed === false).length) {
+    this.setState({ phraseGuessed: true })
+  }
+}
+```
+
+Let's breakdown what is going on above.
+First, componentDidUpdate is passed prevProps and prevState by React.
+We are going to use the prevState to only call `this.setState` when the phrase is first guessed.
+That is when prevState.phraseGuessed is false.
+This will stop us from calling `this.setState` repeatedly and causing a stack overflow.
+
+Next, We are using the filter method on the phraseMap array to filter out only the letters that have not been guessed.
+Then, we are checking it's length. If the length is 0, which is a falsy value in JavaScript, we will use `!` to flip it to `true`
+and go into our `if` statement.
+
+Once in the `if`, we call `this.setState` to notify HangmanGame that the user has guessed the phrase.
+
+You may, rightly, ask why not do this in the updateGame function. The short answer is because `this.setState`
+is asynchronous. So, depending on how quickly the user is guessing letters we could see some weird behavior.
+There are other ways around this, but I didn't want to take you **too* far down the rabbit hole on your first journey.
+
+We will also need to update the render function's ternary to also check for when `this.state.phraseGuessed` is false.
+
+```javascript
+render() {
+  return (
+    <div>
+    {
+      this.state.incorrectGuesses.length < 6 && !this.state.phraseGuessed ?
+        <div style={{ display: 'flex' }}>
+          <div>
+
+           <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
+            {
+              this.state.phraseMap.map((charObj, i) => (<PhraseSlot key={i} charObj={charObj} />))
+            }
+          </ul>
+
+          <AlphaBtns updateGame={this.updateGame} />
+          </div>
+          <div className="hangman-img" style={{ backgroundImage: `url(${imgs[this.state.incorrectGuesses.length]})`}}>
+          </div>
+        </div>
+      :
+      <div>
+        <h1>Game Over</h1>
+        <h2>You didn't guess the phrase. :(</h2>
+      </div>
+    }
+    </div>
+  );
+}
+```
+
+Now that we know when the user has won the game, let's add some view code to change the game over header elements depending on
+whether the user has won or lost. Change the falsy path of the ternary to look like this:
+
+```javascript
+<div>
+  <h1>{this.state.phraseGuessed ? 'You won' : 'Game Over'}</h1>
+  <h2>{this.state.phraseGuessed ? 'Nice work!' : 'You didn't guess the phrase. :('}</h2>
+</div>
+```
+
+Now for the cherry on top. We will add a function to GameBoard to pass to HangmanGame so display a Play Again button that'll
+restart the game.
+
+Remember to get the PhraseModal to display so the user can enter a phrase we just need to set `this.state.phrase` to an empty
+string in GameBoard. So, let's create a function to do just that. Add the following to the GameBoard component.
+
+```javascript
+restartGame = () => {
+    this.setState({ phrase: '' });
+  }
+```
+
+And pass that to HangmanGame like so:
+
+```javascript
+render() {
+  return (
+    <div>
+      {
+        this.state.phrase.length ? <HangmanGame restartGame={this.restartGame} phrase={this.state.phrase} />
+        : <PhraseModal setPhrase={this.setPhrase} />
+      }
+    </div>
+  );
+}
+```
+
+Just add a Btn component to the game over branch of the ternary in HangmanGame that will call restartGame when clicked.
+
+```
+<div>
+  <h1>{this.state.phraseGuessed ? 'You won' : 'Game Over'}</h1>
+  <h2>{this.state.phraseGuessed ? 'Nice work!' : 'You didn't guess the phrase. :('}</h2>
+  <Btn buttonText="Play Again" clickHandler={this.props.restartGame} />
+</div>
+```
+
+And that's it. You have made your first application with React.
+
+# Congratulations!
